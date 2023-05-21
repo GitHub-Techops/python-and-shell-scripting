@@ -1,0 +1,6 @@
+#!/usr/bin/python3
+from PIL import Image
+import pytesseract
+import subprocess
+
+print(pytesseract.image_to_string(Image.open('image.png'))) #Enter image name to convert the image data into text
