@@ -1,0 +1,11 @@
+from jira import JIRA
+
+jira = JIRA(basic_auth=('username', 'password'), options={'server':'https://jira.domain.com'})
+
+issue = jira.issue('JIRA-1233') # Enter jira ticket number here to fetch the data
+print(issue.fields.project.key) 
+print(issue.fields.issuetype.name) 
+print(issue.fields.reporter.displayName)
+print(issue.fields.summary)
+print(issue.fields.description)
+print(issue.fields.comment.comments)
