@@ -1,0 +1,19 @@
+#This script is fetching tickets from JIRA and within ticket fetching the data of system fields and custom fields and appending the multiple iteration data in single variable
+#Using numerize.numerize library to convert the amount into brief figures; example 120000 into 120K
+#At the end posting the data to any specific group such as Slack or telegram using slack webkook / telegram post API
+
+import requests;import base64;from numerize import numerize
+url = "https://your.domain.com/rest/api/2/search"
+query = {'jql': 'Enter your required JQL query'}
+headers = {"Accept": "application/json"}
+response = requests.get(url, headers=headers, auth=("JIRA-REST-USERNAME","JIRA-REST-PASSWORD"), params=query)
+DATA2 = ""
+data = response.json()
+issues = data['issues']
+line_num = 1 #Adding line numbers at starting in each iteration of for loop and storing in vartiable
+for issue in issues:
+    DATA1 ='>*{0}.* <https://your.domain.com/browse/{1}|{1}> - *{2}* - `${3}` | `{4}`\n'.format(line_num,issue['key'],issue['fields']['summary'],numerize.numerize(issue['fields']['customfield_12807']),issue['fields']['assignee']['displayName'] )
+    DATA2 += DATA1
+    line_num += 1
+json_data = {"type": "section","text": "*Report heading :*\n\n" + DATA2,}
+response = requests.post('Enter your slack webhook API', json=json_data)
