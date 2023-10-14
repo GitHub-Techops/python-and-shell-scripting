@@ -1,0 +1,42 @@
+#search @here @channel mentions in slack group and reply on thread with no repetation.
+
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
+client = WebClient(token="xoxb-**************************") #Enter the Slack token
+def fetch_latest_message(channel_id, search_string):
+    try:
+        response = client.conversations_history(channel=channel_id)
+        messages = response['messages']
+        latest_message = next((msg for msg in messages if all(search_string.lower() in msg.get('text', '').lower() for search_string in search_string)), None)
+        return latest_message
+    except SlackApiError as e:
+        print(f"Error fetching messages: {e.response['error']}")
+def reply_to_thread(channel_id, thread_ts, reply_text):
+    try:
+        response = client.chat_postMessage(channel=channel_id, thread_ts=thread_ts, text=reply_text)
+        print("Reply sent successfully.")
+    except SlackApiError as e:
+        print(f"Error replying to thread: {e.response['error']}")
+def has_replied(channel_id, thread_ts):
+    try:
+        response = client.conversations_replies(channel=channel_id, ts=thread_ts)
+        replies = response['messages']
+        bot_user_id = client.auth_test()['user_id']
+        return any(reply.get('user') == bot_user_id for reply in replies)
+
+    except SlackApiError as e:
+        print(f"Error fetching replies: {e.response['error']}")
+
+channel_id = 'C05*****' # Enter the slack channel ID
+for search_string in ('<!channel>' or '<!here>'):
+    reply_text = '>*Please avoid the use of @here or @channel*'
+latest_message = fetch_latest_message(channel_id, search_string)    
+if latest_message:
+    thread_ts = latest_message['ts']
+    if not has_replied(channel_id, thread_ts):
+        reply_to_thread(channel_id, thread_ts, reply_text)
+    else:
+        print("Already replied to this thread. " + thread_ts)
+        #reply_to_thread(channel_id, thread_ts, reply_text)
+else:
+    print("No matching message found.")
